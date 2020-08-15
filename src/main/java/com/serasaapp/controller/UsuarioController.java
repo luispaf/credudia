@@ -13,25 +13,26 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.serasaapp.domain.PerfilPrivilegio;
+import com.serasaapp.domain.Usuario;
 import com.serasaapp.response.GenericResponse;
-import com.serasaapp.service.PerfilPrivilegioService;
+import com.serasaapp.service.UsuarioService;
 
 @RestController
-@RequestMapping("/perfilprivilegio")
+@RequestMapping("/usuario")
 @CrossOrigin(origins = "*")
-public class PerfilPrivilegioController {
+public class UsuarioController {
 
 	@Autowired
-	PerfilPrivilegioService service;
+	UsuarioService service;
 	
+
 	@GetMapping("/todos")
 	public ResponseEntity<GenericResponse<?>> todos() {
-		GenericResponse<List<PerfilPrivilegio>> response = new GenericResponse<List<PerfilPrivilegio>>();
+		GenericResponse<List<Usuario>> response = new GenericResponse<List<Usuario>>();
 		List<String> erros = new ArrayList<String>();
 		try {		
-			Optional<List<PerfilPrivilegio>> listaOptional = null;
-			List<PerfilPrivilegio> lista = service.todos();
+			Optional<List<Usuario>> listaOptional = null;
+			List<Usuario> lista = service.todos();
 			listaOptional = Optional.ofNullable(lista);					 
 			response.setData(listaOptional);
 			response.setStatus(true);			
@@ -44,17 +45,17 @@ public class PerfilPrivilegioController {
 	}
 	
 	@PostMapping("/salvar")
-	public ResponseEntity<GenericResponse<?>> salvar(@RequestBody PerfilPrivilegio perfilPrivilegio) {
-		GenericResponse<PerfilPrivilegio> response = new GenericResponse<PerfilPrivilegio>();
+	public ResponseEntity<GenericResponse<?>> salvar(@RequestBody Usuario usuario) {
+		GenericResponse<Usuario> response = new GenericResponse<Usuario>();
 		List<String> erros = new ArrayList<String>();
 		try {
-			if (perfilPrivilegio != null) {
-				PerfilPrivilegio registroSalvo = service.salvar(perfilPrivilegio);
-				Optional<PerfilPrivilegio> optional =  Optional.ofNullable(registroSalvo);	
+			if (usuario != null) {
+				Usuario registroSalvo = service.salvar(usuario);
+				Optional<Usuario> optional =  Optional.ofNullable(registroSalvo);	
 				response.setData(optional);
 				response.setStatus(true);	
 			} else {
-				throw new Exception("PerfilPrivilegio não informado.");
+				throw new Exception("Usuario não informado.");
 			}
 		} catch (Exception e) {
 			erros.add("Falha: " + e.getMessage());
@@ -66,10 +67,10 @@ public class PerfilPrivilegioController {
 	
 	@PostMapping("/deletar")
 	public ResponseEntity<GenericResponse<?>> salvar(@RequestBody Long codigo) {
-		GenericResponse<List<PerfilPrivilegio>> response = new GenericResponse<List<PerfilPrivilegio>>();
+		GenericResponse<List<Usuario>> response = new GenericResponse<List<Usuario>>();
 		List<String> erros = new ArrayList<String>();
 		try {	
-			Optional<PerfilPrivilegio> reg = service.buscarPorId(codigo);
+			Optional<Usuario> reg = service.buscarPorId(codigo);
 			if (reg.isPresent() && reg.get().getCodigo() != null) {
 				service.excluir(reg.get());			
 			}
@@ -83,17 +84,17 @@ public class PerfilPrivilegioController {
 	}	
 	
 	@PostMapping("/filtro")
-	public ResponseEntity<GenericResponse<?>> filtro(@RequestBody PerfilPrivilegio perfilPrivilegio) {
-		GenericResponse<List<PerfilPrivilegio>> response = new GenericResponse<List<PerfilPrivilegio>>();
+	public ResponseEntity<GenericResponse<?>> filtro(@RequestBody Usuario usuario) {
+		GenericResponse<List<Usuario>> response = new GenericResponse<List<Usuario>>();
 		List<String> erros = new ArrayList<String>();
 		try {
-			if (perfilPrivilegio != null) {
-				List<PerfilPrivilegio> lista = service.buscarFiltro(perfilPrivilegio);
-				Optional<List<PerfilPrivilegio>> listaOptional =  Optional.ofNullable(lista);	
+			if (usuario != null) {
+				List<Usuario> lista = service.buscarFiltro(usuario);
+				Optional<List<Usuario>> listaOptional =  Optional.ofNullable(lista);	
 				response.setData(listaOptional);
 				response.setStatus(true);	
 			} else {
-				throw new Exception("PerfilPrivilegio não informado filtro.");
+				throw new Exception("Usuario não informado filtro.");
 			}
 		} catch (Exception e) {
 			erros.add("Falha: " + e.getMessage());
@@ -105,17 +106,17 @@ public class PerfilPrivilegioController {
 	
 	@PostMapping("/id")
 	public ResponseEntity<GenericResponse<?>> buscarPorId(@RequestBody Long codigo) {
-		GenericResponse<PerfilPrivilegio> response = new GenericResponse<PerfilPrivilegio>();
+		GenericResponse<Usuario> response = new GenericResponse<Usuario>();
 		List<String> erros = new ArrayList<String>();
 		try {	
 			if (codigo != null) {
-				Optional<PerfilPrivilegio> reg = service.buscarPorId(codigo);
+				Optional<Usuario> reg = service.buscarPorId(codigo);
 				if (reg.isPresent() && reg.get().getCodigo() != null) {
 					response.setData(reg);				
 				}
 				response.setStatus(true);				
 			} else {
-				throw new Exception("PerfilPrivilegio não informado para busca por ID.");
+				throw new Exception("Usuario não informado para busca por ID.");
 			}
 		} catch (Exception e) {
 			erros.add("Falha: " + e.getMessage());
