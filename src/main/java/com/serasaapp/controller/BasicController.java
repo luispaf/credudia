@@ -38,7 +38,7 @@ public abstract BasicService<T,ID> getService();
 		return  getRepository().findAll(pageable).getContent();
 	}
 	
-	@PostMapping(path="/salvar", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@PostMapping(path="/salvar", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public T salvar(@RequestBody T object) throws ServiceException{
 		return (T) getService().salvar(object);
 	}

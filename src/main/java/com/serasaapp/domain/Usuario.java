@@ -22,8 +22,8 @@ public class Usuario {
 	@Column(name = "nome")
 	private String nome;
 	
-	@Column(name = "usuario")
-	private String usuario;
+	@Column(name = "login")
+	private String login;
 	
 	@Column(name = "senha")
 	private String senha;
@@ -35,7 +35,13 @@ public class Usuario {
 	private Long codigoPerfil;
 	
 	@Column(name = "status")
-	private Boolean status;
+	private String status;
+	
+	@Column(name = "datinibloqueio")
+	private Date dataInicioBloqueio;
+	
+	@Column(name = "datfimbloqueio")
+	private Date dataFimBloqueio;
 	
 	@OneToOne
 	@JoinColumn(name = "codperfil", insertable = false, updatable = false)
@@ -58,12 +64,12 @@ public class Usuario {
 		this.nome = nome;
 	}
 
-	public String getUsuario() {
-		return usuario;
+	public String getLogin() {
+		return login;
 	}
 
-	public void setUsuario(String usuario) {
-		this.usuario = usuario;
+	public void setLogin(String usuario) {
+		this.login = usuario;
 	}
 
 	public String getSenha() {
@@ -90,11 +96,11 @@ public class Usuario {
 		this.codigoPerfil = codigoPerfil;
 	}
 
-	public Boolean getStatus() {
+	public String getStatus() {
 		return status;
 	}
 
-	public void setStatus(Boolean status) {
+	public void setStatus(String status) {
 		this.status = status;
 	}
 
@@ -105,12 +111,37 @@ public class Usuario {
 	public void setPerfil(Perfil perfil) {
 		this.perfil = perfil;
 	}
+	
+	public Date getDataInicioBloqueio() {
+		return dataInicioBloqueio;
+	}
+
+	public void setDataInicioBloqueio(Date dataInicioBloqueio) {
+		this.dataInicioBloqueio = dataInicioBloqueio;
+	}
+
+	public Date getDataFimBloqueio() {
+		return dataFimBloqueio;
+	}
+
+	public void setDataFimBloqueio(Date dataFimBloqueio) {
+		this.dataFimBloqueio = dataFimBloqueio;
+	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((codigo == null) ? 0 : codigo.hashCode());
+		result = prime * result + ((codigoPerfil == null) ? 0 : codigoPerfil.hashCode());
+		result = prime * result + ((dataCadastro == null) ? 0 : dataCadastro.hashCode());
+		result = prime * result + ((dataFimBloqueio == null) ? 0 : dataFimBloqueio.hashCode());
+		result = prime * result + ((dataInicioBloqueio == null) ? 0 : dataInicioBloqueio.hashCode());
+		result = prime * result + ((nome == null) ? 0 : nome.hashCode());
+		result = prime * result + ((perfil == null) ? 0 : perfil.hashCode());
+		result = prime * result + ((senha == null) ? 0 : senha.hashCode());
+		result = prime * result + ((status == null) ? 0 : status.hashCode());
+		result = prime * result + ((login == null) ? 0 : login.hashCode());
 		return result;
 	}
 
@@ -127,6 +158,51 @@ public class Usuario {
 			if (other.codigo != null)
 				return false;
 		} else if (!codigo.equals(other.codigo))
+			return false;
+		if (codigoPerfil == null) {
+			if (other.codigoPerfil != null)
+				return false;
+		} else if (!codigoPerfil.equals(other.codigoPerfil))
+			return false;
+		if (dataCadastro == null) {
+			if (other.dataCadastro != null)
+				return false;
+		} else if (!dataCadastro.equals(other.dataCadastro))
+			return false;
+		if (dataFimBloqueio == null) {
+			if (other.dataFimBloqueio != null)
+				return false;
+		} else if (!dataFimBloqueio.equals(other.dataFimBloqueio))
+			return false;
+		if (dataInicioBloqueio == null) {
+			if (other.dataInicioBloqueio != null)
+				return false;
+		} else if (!dataInicioBloqueio.equals(other.dataInicioBloqueio))
+			return false;
+		if (nome == null) {
+			if (other.nome != null)
+				return false;
+		} else if (!nome.equals(other.nome))
+			return false;
+		if (perfil == null) {
+			if (other.perfil != null)
+				return false;
+		} else if (!perfil.equals(other.perfil))
+			return false;
+		if (senha == null) {
+			if (other.senha != null)
+				return false;
+		} else if (!senha.equals(other.senha))
+			return false;
+		if (status == null) {
+			if (other.status != null)
+				return false;
+		} else if (!status.equals(other.status))
+			return false;
+		if (login == null) {
+			if (other.login != null)
+				return false;
+		} else if (!login.equals(other.login))
 			return false;
 		return true;
 	}	

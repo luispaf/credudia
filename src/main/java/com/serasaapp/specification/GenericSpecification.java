@@ -126,6 +126,7 @@ private SearchCriteria criteria;
 		}
 	}
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Predicate inTo(Root<T> root, CriteriaBuilder builder, Object attribute) {
 		
 		if (attribute == String[].class) {

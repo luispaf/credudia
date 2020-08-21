@@ -27,14 +27,14 @@ public class UsuarioRepositoryImpl {
 			 if (usuario.getNome() != null && usuario.getNome().length() > 0) {
 				 specificationBuilder.with("nome",  OperationsCriteria.LK, usuario.getNome());			 
 			 }
-			 if (usuario.getUsuario() != null && usuario.getUsuario().length() > 0) {
-				 specificationBuilder.with("usuario",  OperationsCriteria.LK, usuario.getUsuario());			 
+			 if (usuario.getLogin() != null && usuario.getLogin().length() > 0) {
+				 specificationBuilder.with("login",  OperationsCriteria.LK, usuario.getLogin());			 
 			 }
 			 if (usuario.getCodigoPerfil() != null) {
 				 specificationBuilder.with("codigoPerfil",  OperationsCriteria.EQ, usuario.getCodigoPerfil());				 
 			 }
-			 if (usuario.getStatus() != null && usuario.getStatus()) {
-				 specificationBuilder.with("status",  OperationsCriteria.EQ, usuario.getStatus());				 
+			 if (usuario.getStatus() != null && usuario.getStatus().length() > 0) {
+				 specificationBuilder.with("status",  OperationsCriteria.LK, usuario.getStatus());				 
 			 }			 
 			 return usuarioRepository.findAll(specificationBuilder.build());				 
 		 }

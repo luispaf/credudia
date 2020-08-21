@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 @CrossOrigin(origins = "*")
 public class versaoController {
 	
+	@SuppressWarnings("unused")
 	private RestTemplate rest = new RestTemplate();
 
 	@GetMapping("/versaoatual")
@@ -35,6 +36,7 @@ public class versaoController {
         return "OKOK";
 	}
 	
+	@SuppressWarnings({ "unchecked", "rawtypes", "unused" })
 	public String teste() {
 		// TODO Auto-generated method stub
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
