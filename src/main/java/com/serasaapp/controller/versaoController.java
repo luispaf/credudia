@@ -49,7 +49,7 @@ public class versaoController {
         Map req_payload = new HashMap();
         req_payload.put("produto", "215F05DDDB5489715942199957JETE0B9WP50P3M1MZREOLZ3T");
         req_payload.put("param", "cpf");
-        req_payload.put("value", "74550713615");
+        req_payload.put("value", "09297615619");
         req_payload.put("uf", "MG");
 
         HttpEntity<?> request = new HttpEntity<>(req_payload, headers);
