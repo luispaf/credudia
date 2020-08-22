@@ -16,6 +16,7 @@ import com.serasaapp.consultas.cpfDetalhada.RetornoPrincipalCPF;
 import com.serasaapp.consultas.placas.RetornoPrincipalPLACAS;
 import com.serasaapp.response.GenericResponse;
 import com.serasaapp.service.ConsultaService;
+import com.serasaapp.util.Util;
 
 @RestController
 @RequestMapping("/consulta")
@@ -32,7 +33,7 @@ public class consultaController {
 		List<String> erros = new ArrayList<String>();
 		try {
 			
-			Boolean cpfValido = consultaService.isCPF(cpf);
+			Boolean cpfValido = Util.isCPF(cpf);
 			if (!cpfValido) {
 				throw new Exception("CPF invalido: " + cpf);
 			}

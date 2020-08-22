@@ -1,11 +1,11 @@
-package com.serasaapp.consultas.cpfDetalhada;
+package com.serasaapp.consultas.placas;
 
 import java.io.Serializable;
 import java.util.List;
 
 import com.serasaapp.consultas.genericas.Usuario;
 
-public class Consulta implements Serializable{
+public class ConsultaPLACA implements Serializable{
 
 	private static final long serialVersionUID = 3205010030711458874L;
 
@@ -17,15 +17,8 @@ public class Consulta implements Serializable{
 	private String titulo;
 	private Long status;
 	private Usuario usuario;
-	private List<ResultadoCPF> resultados;
-	
-	
-	public List<ResultadoCPF> getResultados() {
-		return resultados;
-	}
-	public void setResultados(List<ResultadoCPF> resultados) {
-		this.resultados = resultados;
-	}
+	private List<ResultadoPLACA> resultados;
+			
 	public String getToken_grupoconsulta() {
 		return token_grupoconsulta;
 	}
@@ -73,6 +66,13 @@ public class Consulta implements Serializable{
 	}
 	public void setUsuario(Usuario usuario) {
 		this.usuario = usuario;
+	}
+	
+	public List<ResultadoPLACA> getResultados() {
+		return resultados;
+	}
+	public void setResultados(List<ResultadoPLACA> resultados) {
+		this.resultados = resultados;
 	}
 	
 }

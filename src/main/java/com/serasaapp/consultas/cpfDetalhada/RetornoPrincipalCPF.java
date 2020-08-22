@@ -7,7 +7,7 @@ public class RetornoPrincipalCPF implements Serializable{
 	private static final long serialVersionUID = -606222464337374713L;
 	private String message;
 	private Long result;
-	private Consulta consulta;
+	private ConsultaCPFDET consulta;
 	
 	
 	public String getMessage() {
@@ -22,10 +22,10 @@ public class RetornoPrincipalCPF implements Serializable{
 	public void setResult(Long result) {
 		this.result = result;
 	}
-	public Consulta getConsulta() {
+	public ConsultaCPFDET getConsulta() {
 		return consulta;
 	}
-	public void setConsulta(Consulta consulta) {
+	public void setConsulta(ConsultaCPFDET consulta) {
 		this.consulta = consulta;
 	}		
 }
