@@ -1,126 +1,146 @@
 package com.serasaapp.service.impl;
 
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.InputMismatchException;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.serasaapp.consultas.cpfDetalhada.RetornoPrincipalCPF;
-import com.serasaapp.consultas.placas.RetornoPrincipalPLACAS;
 import com.serasaapp.domain.Parametro;
+import com.serasaapp.domain.RetornoConsulta;
 import com.serasaapp.repository.ParametroRepository;
+import com.serasaapp.repository.RetornoConsultaRepository;
 import com.serasaapp.service.ConsultaService;
 import com.serasaapp.util.Util;
 
 @Service
 public class ConsultaServiceImpl implements ConsultaService{
-
+	
+	@Autowired
+	RetornoConsultaRepository retornoConsultaRepository;
 	@Autowired
 	ParametroRepository parametroRepository;
+	
+	
 	
 	public final Long USUARIO_SENHA_APLICACAO = 1L;
 	public final Long BUSCA_POR_CPF = 2l;
 	public final Long BUSCA_POR_PLACAS = 3L;
+	public final Long BUSCA_POR_NOME = 4L;
 	
 	@Override
-	public RetornoPrincipalCPF consultarCPF(String cpf, String uf) throws Exception {
-		if ((cpf != null && cpf.length() > 0) && (uf != null && uf.length() > 0)) {
-			try {				
-				Parametro UsuarioSenhaAplicacao = this.buscarParametro(USUARIO_SENHA_APLICACAO);
-				String authorization = Util.gerarBase64(UsuarioSenhaAplicacao.getUsuario() + ":" + UsuarioSenhaAplicacao.getSenha());
-				Parametro parametroCPF = this.buscarParametro(BUSCA_POR_CPF);
+	public String consultarCPF(String cpf, String uf, Long codigoTipoConsulta,  Long codigoUsuarioEmpresa) throws Exception {
+		try {				
+			Parametro UsuarioSenhaAplicacao = this.buscarParametro(USUARIO_SENHA_APLICACAO);
+			String authorization = Util.gerarBase64(UsuarioSenhaAplicacao.getUsuario() + ":" + UsuarioSenhaAplicacao.getSenha());
+			Parametro parametroCPF = this.buscarParametro(BUSCA_POR_CPF);
 
-				MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
-				Map map = new HashMap<String, String>();
-				map.put("Authorization", "Basic " + authorization);
-				map.put("api-token", parametroCPF.getValor1());
+			MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+			Map map = new HashMap<String, String>();
+			map.put("Authorization", "Basic " + authorization);
+			map.put("api-token", parametroCPF.getValor1());
 
-				headers.setAll(map);
+			headers.setAll(map);
 
-				Map req_payload = new HashMap();
-				req_payload.put("produto", parametroCPF.getValor2());
-				req_payload.put("param", "cpf");
-				req_payload.put("value", cpf);
-				req_payload.put("uf", uf);
+			Map req_payload = new HashMap();
+			req_payload.put("produto", parametroCPF.getValor2());
+			req_payload.put("param", "cpf");
+			req_payload.put("value", cpf);
+			req_payload.put("uf", uf);
 
-				HttpEntity<?> request = new HttpEntity<>(req_payload, headers);
-				String url = parametroCPF.getValor3();
+			HttpEntity<?> request = new HttpEntity<>(req_payload, headers);
+			String url = parametroCPF.getValor3();
 
-				//ResponseEntity<?> response = new RestTemplate().postForEntity(url, request, String.class);
-				//String json = response.getBody().toString();
-				
-				 String json =  buscaJson("CPF");
-			     RetornoPrincipalCPF infobuscaDetalhadaPfPj = new RetornoPrincipalCPF();  
-			     ObjectMapper mapper = new ObjectMapper(); 
-			     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-			     mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-			     mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
-			     mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
-			     infobuscaDetalhadaPfPj = mapper.readValue(json, RetornoPrincipalCPF.class);
-			     return infobuscaDetalhadaPfPj;
-			} catch (Exception e) {
-				throw new Exception("Falha ao consultar o CPF: " + cpf + "/Nenhum registro foi encontrado!");
-			}		
+			//ResponseEntity<?> response = new RestTemplate().postForEntity(url, request, String.class);
+			//String json = response.getBody().toString();
+			
+			 String json =  buscaJson("CPF");
+
+			 // Salva o retorno
+			 RetornoConsulta retornoSalvo = this.salvarRetorno(codigoTipoConsulta, codigoUsuarioEmpresa, json, cpf, uf);	
+		     return json;
+		} catch (Exception e) {
+			throw new Exception("Falha ao consultar o CPF: " + e.getMessage());
 		}
-		return null;
 	}
 	
 	@Override
-	public RetornoPrincipalPLACAS consultarPLACA(String placa, String uf) throws Exception {
-		if ((placa != null && placa.length() > 0) && (uf != null && uf.length() > 0)) {
-			try {				
-//				Parametro  UsuarioSenhaAplicacao = this.buscarParametro(USUARIO_SENHA_APLICACAO);
-//				String authorization = this.gerarBase64(UsuarioSenhaAplicacao.getUsuario() + ":" + UsuarioSenhaAplicacao.getSenha());
-//				Parametro parametroCPF = this.buscarParametro(BUSCA_POR_PLACAS);
-//				
-//				MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
-//		        Map map = new HashMap<String, String>();
-//		        map.put("Authorization", "Basic " + authorization);
-//		        map.put("api-token", parametroCPF.getValor1());
-//
-//		        headers.setAll(map);
-//
-//		        Map req_payload = new HashMap();
-//		        req_payload.put("produto", parametroCPF.getValor2());
-//		        req_payload.put("param", "placa");
-//		        req_payload.put("value", placa);
-//		        req_payload.put("uf", uf);
-//
-//		        HttpEntity<?> request = new HttpEntity<>(req_payload, headers);
-//		        String url = parametroCPF.getValor3();
-//
-//		        ResponseEntity<?> response = new RestTemplate().postForEntity(url, request, String.class);
-//			             
-			     //String json = response.getBody().toString();
-				String json  = buscaJson("PLACA");
-			     RetornoPrincipalPLACAS retornoPrincipalPLACAS = new RetornoPrincipalPLACAS();  
-			     ObjectMapper mapper = new ObjectMapper(); 
-			     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-			     mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-			     mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
-			     mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
-			     retornoPrincipalPLACAS = mapper.readValue(json, RetornoPrincipalPLACAS.class);
-			    System.out.println(retornoPrincipalPLACAS.getConsulta().getResultados().get(0).getRetornoPLACA().getUf()) ;
-			     return retornoPrincipalPLACAS;
-			} catch (Exception e) {
-				throw new Exception("Falha ao consultar a placa: " + placa + "/Nenhum registro foi encontrado!");
-			}		
-		}
-		return null;
+	public String consultarPLACA(String placa, String uf, Long codigoTipoConsulta,  Long codigoUsuarioEmpresa) throws Exception {
+		try {				
+			Parametro  UsuarioSenhaAplicacao = this.buscarParametro(USUARIO_SENHA_APLICACAO);
+			String authorization = Util.gerarBase64(UsuarioSenhaAplicacao.getUsuario() + ":" + UsuarioSenhaAplicacao.getSenha());
+			Parametro parametroCPF = this.buscarParametro(BUSCA_POR_PLACAS);
+			
+			MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+	        Map map = new HashMap<String, String>();
+	        map.put("Authorization", "Basic " + authorization);
+	        map.put("api-token", parametroCPF.getValor1());
+
+	        headers.setAll(map);
+
+	        Map req_payload = new HashMap();
+	        req_payload.put("produto", parametroCPF.getValor2());
+	        req_payload.put("param", "placa");
+	        req_payload.put("value", placa);
+	        req_payload.put("uf", uf);
+
+	        HttpEntity<?> request = new HttpEntity<>(req_payload, headers);
+	        String url = parametroCPF.getValor3();
+
+	        //ResponseEntity<?> response = new RestTemplate().postForEntity(url, request, String.class);			             
+		     //String json = response.getBody().toString();
+	        
+			String json  = buscaJson("PLACA");
+			
+			 // Salva o retorno
+			 RetornoConsulta retornoSalvo = this.salvarRetorno(codigoTipoConsulta, codigoUsuarioEmpresa, json, placa, uf);	
+			 
+		     return json;
+		} catch (Exception e) {
+			throw new Exception("Falha ao consultar a placa: " + placa + "/Nenhum registro foi encontrado!");
+		}		
+	}
+	
+	@Override
+	public String consultarNome(String nome, String uf, Long codigoTipoConsulta,  Long codigoUsuarioEmpresa) throws Exception {
+		try {				
+			Parametro  UsuarioSenhaAplicacao = this.buscarParametro(USUARIO_SENHA_APLICACAO);
+			String authorization = Util.gerarBase64(UsuarioSenhaAplicacao.getUsuario() + ":" + UsuarioSenhaAplicacao.getSenha());
+			Parametro parametroCPF = this.buscarParametro(BUSCA_POR_NOME);
+			
+			MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+	        Map map = new HashMap<String, String>();
+	        map.put("Authorization", "Basic " + authorization);
+	        map.put("api-token", parametroCPF.getValor1());
+
+	        headers.setAll(map);
+
+	        Map req_payload = new HashMap();
+	        req_payload.put("produto", parametroCPF.getValor2());
+	        req_payload.put("param", "nome");
+	        req_payload.put("value", nome);
+	        req_payload.put("uf", uf);
+
+	        HttpEntity<?> request = new HttpEntity<>(req_payload, headers);
+	        String url = parametroCPF.getValor3();
+
+	        //ResponseEntity<?> response = new RestTemplate().postForEntity(url, request, String.class);			             
+		    //String json = response.getBody().toString();
+	        
+			String json  = buscaJson("NOME");
+			
+			 // Salva o retorno
+			RetornoConsulta retornoSalvo = this.salvarRetorno(codigoTipoConsulta, codigoUsuarioEmpresa, json, nome, uf);
+			 
+		     return json;
+		} catch (Exception e) {
+			throw new Exception("Falha ao consultar o nome: " + nome + "/Nenhum registro foi encontrado!");
+		}	
 	}
 
 	public String buscaJson(String tipoConsulta) {
@@ -130,9 +150,28 @@ public class ConsultaServiceImpl implements ConsultaService{
 		if (tipoConsulta == "CPF") {
 			return "{\"message\":\"Consulta realizada com sucesso\",\"consulta\":{\"token_grupoconsulta\":\"215F05DDDB5489715942199957JETE0B9WP50P3M1MZREOLZ3T\",\"token\":\"215F410BBD879EF15980983656XYD67TIKN5F9N9LCE3WK9NXD\",\"parametro\":\"CPF\",\"parametro_valor\":\"092.976.156-19\",\"ctime\":\"2020-08-22T09:12:44-03:00\",\"titulo\":\"Infobusca Detalhada PF\\/PJ\",\"usuario\":{\"token\":null,\"nome\":\"SOARES\",\"email\":\"atendimento1@ksiconsultas.com\",\"cpf\":\"898.079.875-04\",\"cliente\":{\"nome\":\"SOARES\",\"nomeFantasia\":\"\",\"razaoSocial\":\"\",\"cpf\":\"898.079.875-04\",\"cnpj\":null,\"cidade\":\"SALVADOR\",\"uf\":\"BA\"}},\"status\":1,\"resultados\":[{\"id\":123,\"title\":\"Localiza\\u00e7\\u00e3o - Informa\\u00e7\\u00f5es B\\u00e1sicas\",\"token\":\"ce7e311e14b92bf363bccc0299693dc6\",\"ctime\":\"2020-08-22T09:12:44-03:00\",\"retorno\":{\"cpf\":\"09297615619\",\"nome\":\"LUIS PAULO ANDRADE FREITAS\",\"nascimento\":\"13\\/04\\/1988\",\"idade\":32,\"sexo\":\"M\",\"nomedamae\":\"MARIA APARECIDA ANDRADE FREITAS\",\"signo\":\"N\\u00e3o Informado\",\"email\":[{\"email\":\"andradefreitas1988@hotmail.com\"}],\"enderecos\":[{\"logradouro\":\"RUA BENTO GONCALVES\",\"numero\":\"703\",\"bairro\":\"NOSSA SENHORA DAS GRACAS\",\"cidade\":\"UBERLANDIA\",\"uf\":\"MG\",\"cep\":\"38402004\"}],\"telefones\":[{\"ddd\":\"34\",\"telefone\":\"32573703\",\"tipo\":null},{\"ddd\":\"34\",\"telefone\":\"32106073\",\"tipo\":null},{\"ddd\":\"34\",\"telefone\":\"999411654\",\"tipo\":null},{\"ddd\":\"34\",\"telefone\":\"991645219\",\"tipo\":null},{\"ddd\":\"34\",\"telefone\":\"32139114\",\"tipo\":null},{\"ddd\":\"34\",\"telefone\":\"32242007\",\"tipo\":null},{\"ddd\":\"34\",\"telefone\":\"32916600\",\"tipo\":null},{\"ddd\":\"34\",\"telefone\":\"32128050\",\"tipo\":null},{\"ddd\":\"34\",\"telefone\":\"32916809\",\"tipo\":null}]}},{\"id\":157,\"title\":\"Localiza por Documento\",\"token\":\"0a5822f5dce1bce56b0c3a04739137e4\",\"ctime\":\"2020-08-22T09:12:44-03:00\",\"retorno\":{\"cadastral\":{\"cpf\":\"09297615619\",\"nome\":\"LUIS PAULO ANDRADE FREITAS\",\"nascimento\":\"13\\/04\\/1988\",\"idade\":32,\"sexo\":\"Masculino\",\"nomedamae\":\"MARIA APARECIDA ANDRADE FREITAS\",\"codigocbo\":\"252105\",\"descricaocbo\":\"Administrador\",\"escolaridade\":\"ARIES\",\"dependentes\":0,\"estadocivil\":\"N\\u00e3o Informado\",\"renda\":\"1.102,00\"},\"email\":[{\"email\":\"andradefreitas590@gmail.com\"},{\"email\":\"andradefreitas1988@hotmail.com\"}],\"enderecos\":[{\"logradouro\":\"AV FLORIANO PEIXOTO\",\"bairro\":\"NOSSA SENHORA APARECIDA\",\"cidade\":\"UBERLANDIA\",\"uf\":\"MG\",\"cep\":\"38400698\"},{\"logradouro\":\"AV DOS FERREIRAS\",\"bairro\":\"JD CALIFORNIA\",\"cidade\":\"UBERLANDIA\",\"uf\":\"MG\",\"cep\":\"38406136\"},{\"logradouro\":\"AV DOS FERREIRAS\",\"bairro\":\"JD CALIFORNIA\",\"cidade\":\"UBERLANDIA\",\"uf\":\"MG\",\"cep\":\"38406136\"}],\"telefone\":[{\"ddd\":\"34\",\"numero\":\"991645219\"},{\"ddd\":\"34\",\"numero\":\"997902815\"},{\"ddd\":\"34\",\"numero\":\"999411654\"},{\"ddd\":\"34\",\"numero\":\"32916809\"},{\"ddd\":\"34\",\"numero\":\"32573703\"}]}}]},\"result\":1}";
 		}
+		if (tipoConsulta == "NOME") {
+			return "{\"message\":\"Consulta realizada com sucesso\",\"consulta\":{\"token_grupoconsulta\":\"215F05DA615F070159421910558LN1PAST2ZIRJ4DVG5AGL8P9\",\"token\":\"215F4467C7C46021598318535TFDL8MX6ATGZR4LC6J68A5TAV\",\"parametro\":\"NOME\",\"parametro_valor\":\"LUIS PAULO ANDRADE FREITAS\",\"ctime\":\"2020-08-24T22:22:15-03:00\",\"titulo\":\"Infobusca\",\"usuario\":{\"token\":null,\"nome\":\"SOARES\",\"email\":\"atendimento1@ksiconsultas.com\",\"cpf\":\"898.079.875-04\",\"cliente\":{\"nome\":\"SOARES\",\"nomeFantasia\":\"\",\"razaoSocial\":\"\",\"cpf\":\"898.079.875-04\",\"cnpj\":null,\"cidade\":\"SALVADOR\",\"uf\":\"BA\"}},\"status\":1,\"resultados\":[{\"id\":118,\"title\":\"Localiza por Nome\",\"token\":\"a1a0b6557d18d25eb8722e86da1ea92d\",\"ctime\":\"2020-08-24T22:22:15-03:00\",\"retorno\":{\"status\":\"1\",\"mensagem\":\"Encontrado registros\",\"registrosPF\":[{\"documento\":\"09297615619\",\"nome\":\"LUIS PAULO ANDRADE FREITAS\",\"idade\":\"32\",\"bairro\":\"NOSSA SENHORA APARECIDA\",\"cidade\":\"UBERLANDIA\",\"estado\":\"MG\"}],\"registrosPJ\":null}}]},\"result\":1}";
+		}
 		return null;
 	}
 	
+	public RetornoConsulta salvarRetorno(Long codigoTipoConsulta, Long codigoUsuario, String json, String cpf, String uf) throws Exception {
+		try {
+			RetornoConsulta retorno = new RetornoConsulta();
+			retorno.setCodigoTipoConsulta(codigoTipoConsulta);
+			retorno.setCodigoUsuario(codigoUsuario);
+			retorno.setDataCadastro(new Date());
+			retorno.setValor(cpf);
+			retorno.setUf(uf);
+			retorno.setJson(json);
+			retornoConsultaRepository.save(retorno);
+			return retorno;
+		} catch (Exception e) {
+			throw new Exception("Falha ao salvar retorno da consulta: " + e.getMessage());
+		}		
+	}
+			
 	public Parametro buscarParametro(Long codigoParametro) throws Exception {
 		Optional<Parametro> parametro = parametroRepository.findById(codigoParametro);
 		if (parametro != null && parametro.isPresent()) {
@@ -140,5 +179,6 @@ public class ConsultaServiceImpl implements ConsultaService{
 		}else {
 			throw new Exception("Parametro:" + codigoParametro + " não encontrado!");
 		}		
-	}	
+	}
+	
 }

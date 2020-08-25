@@ -1,10 +1,8 @@
 package com.serasaapp.service;
 
-import com.serasaapp.consultas.cpfDetalhada.RetornoPrincipalCPF;
-import com.serasaapp.consultas.placas.RetornoPrincipalPLACAS;
-
 public interface ConsultaService {
 
-	public RetornoPrincipalCPF consultarCPF(String cpf, String uf) throws Exception;
-	public RetornoPrincipalPLACAS consultarPLACA(String placa, String uf) throws Exception;
+	public String consultarCPF(String cpf, String uf, Long codigoTipoConsulta,  Long codigoUsuarioEmpresa) throws Exception;
+	public String consultarPLACA(String placa, String uf, Long codigoTipoConsulta,  Long codigoUsuarioEmpresa) throws Exception;
+	public String consultarNome(String nome, String uf, Long codigoTipoConsulta,  Long codigoUsuarioEmpresa) throws Exception;
 }

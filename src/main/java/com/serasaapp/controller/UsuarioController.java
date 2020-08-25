@@ -66,7 +66,7 @@ public class UsuarioController {
 	}
 	
 	@PostMapping("/deletar")
-	public ResponseEntity<GenericResponse<?>> salvar(@RequestBody Long codigo) {
+	public ResponseEntity<GenericResponse<?>> deletar(@RequestBody Long codigo) {
 		GenericResponse<List<Usuario>> response = new GenericResponse<List<Usuario>>();
 		List<String> erros = new ArrayList<String>();
 		try {	

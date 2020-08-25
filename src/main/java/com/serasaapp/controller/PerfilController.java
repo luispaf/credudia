@@ -66,7 +66,7 @@ public class PerfilController {
 	}
 	
 	@PostMapping("/deletar")
-	public ResponseEntity<GenericResponse<?>> salvar(@RequestBody Long codigo) {
+	public ResponseEntity<GenericResponse<?>> deletar(@RequestBody Long codigo) {
 		GenericResponse<List<Perfil>> response = new GenericResponse<List<Perfil>>();
 		List<String> erros = new ArrayList<String>();
 		try {	
