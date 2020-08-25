@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.serasaapp.domain.RetornoConsulta;
+import com.serasaapp.repository.RetornoConsultaRepository;
 import com.serasaapp.response.GenericResponse;
 import com.serasaapp.service.ConsultaService;
 import com.serasaapp.util.Util;
@@ -26,6 +28,8 @@ public class consultaController {
 	
 	@Autowired
 	ConsultaService consultaService;
+	@Autowired
+	RetornoConsultaRepository retornoConsultaRepository;
 	
 	@GetMapping("/buscarPorCPF/{cpf}/{uf}/{codigoTipoConsulta}/{codigoUsuarioEmpresa}")
 	public ResponseEntity<GenericResponse<?>> buscarPorCPF(@PathVariable("cpf") String cpf, 
@@ -127,6 +131,65 @@ public class consultaController {
 			} else {
 				response.setStatus(true);
 			}
+		} catch (Exception e) {
+			erros.add("Falha: " + e.getMessage());
+			response.setStatus(false);
+			response.setErrors(erros);
+		}
+		return ResponseEntity.ok(response);		
+	}
+	
+	@GetMapping("/buscaRetornoPorCodigo/{codigo}")
+	public ResponseEntity<GenericResponse<?>> buscaRetornoPorCodigo(@PathVariable("codigo") Long codigo) {
+		GenericResponse<RetornoConsulta> response = new GenericResponse<RetornoConsulta>();
+		List<String> erros = new ArrayList<String>();
+		try {
+			
+			if (codigo == null) {
+				throw new Exception("Todos os parametros são origatórios!");
+			}
+			
+			Optional<RetornoConsulta> ret = retornoConsultaRepository.findById(codigo);			
+			
+			if (ret != null && ret.isPresent()) {					 
+				response.setData(ret);
+				response.setStatus(true);			
+			} else {
+				response.setStatus(true);
+			}
+		} catch (Exception e) {
+			erros.add("Falha: " + e.getMessage());
+			response.setStatus(false);
+			response.setErrors(erros);
+		}
+		return ResponseEntity.ok(response);		
+	}
+	
+	@GetMapping("/buscaJsonRetornoPorCodigo/{codigo}")
+	public ResponseEntity<GenericResponse<?>> buscaJsonRetornoPorCodigo(@PathVariable("codigo") Long codigo) {
+		GenericResponse<HashMap> response = new GenericResponse<HashMap>();
+		List<String> erros = new ArrayList<String>();
+		try {
+			
+			if (codigo == null) {
+				throw new Exception("Todos os parametros são origatórios!");
+			}
+			
+			Optional<RetornoConsulta> ret = retornoConsultaRepository.findById(codigo);			
+			
+			if (ret != null && ret.isPresent() && ret.get().getJson() != null && ret.get().getJson().length() > 0) {
+				String json = ret.get().getJson();				
+				ObjectMapper mapper = new ObjectMapper(); 
+				mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+				mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+				mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
+				mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+				HashMap<String, Object> retorno = mapper.readValue(json, HashMap.class);
+				response.setData(Optional.ofNullable(retorno));
+				response.setStatus(true);			
+			} else {
+				response.setStatus(true);
+			}			
 		} catch (Exception e) {
 			erros.add("Falha: " + e.getMessage());
 			response.setStatus(false);
