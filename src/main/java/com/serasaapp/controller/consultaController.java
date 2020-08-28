@@ -31,8 +31,14 @@ public class consultaController {
 	@Autowired
 	RetornoConsultaRepository retornoConsultaRepository;
 	
-	@GetMapping("/buscarPorCPF/{cpf}/{uf}/{codigoTipoConsulta}/{codigoUsuarioEmpresa}")
-	public ResponseEntity<GenericResponse<?>> buscarPorCPF(@PathVariable("cpf") String cpf, 
+	
+	public final Long INFOBUSCA_DETALHADA_PF = 1L;
+	public final Long INFOBUSCA_DETALHADA_PJ = 2L;
+	public final Long ACOES_JUDICIAIS_PF = 6L;
+	public final Long ACOES_JUDICIAIS_PJ = 7L;
+	
+	@GetMapping("/infobuscaDetalhada/{valor}/{uf}/{codigoTipoConsulta}/{codigoUsuarioEmpresa}")
+	public ResponseEntity<GenericResponse<?>> infobuscaDetalhada(@PathVariable("valor") String valor, 
 														   @PathVariable("uf") String uf, 
 														   @PathVariable("codigoTipoConsulta") Long codigoTipoConsulta,
 														   @PathVariable("codigoUsuarioEmpresa") Long codigoUsuarioEmpresa) {		
@@ -40,24 +46,30 @@ public class consultaController {
 		GenericResponse<HashMap> response = new GenericResponse<HashMap>();
 		List<String> erros = new ArrayList<String>();
 		try {
-			
-			if ((cpf == null || cpf.length() == 0) || (uf == null || uf.length() == 0) || (codigoTipoConsulta == null) || (codigoUsuarioEmpresa == null)) {
+			if ((valor == null || valor.length() == 0) || (uf == null || uf.length() == 0) || (codigoTipoConsulta == null) || (codigoUsuarioEmpresa == null)) {
 				throw new Exception("Todos os parametros são origatórios!");
+			}	
+			
+			String ret = "";
+			if (codigoTipoConsulta.equals(INFOBUSCA_DETALHADA_PF)) {
+				Boolean cpfValido = Util.isCPF(valor);				
+				if (!cpfValido) {throw new Exception("CPF invalido: " + valor);}				
+				ret = consultaService.infobuscaDetalhada(valor, uf, INFOBUSCA_DETALHADA_PF, codigoUsuarioEmpresa);					
 			}
 			
-			Boolean cpfValido = Util.isCPF(cpf);
+			if (codigoTipoConsulta.equals(INFOBUSCA_DETALHADA_PJ)) {
+				Boolean cnpjValido = Util.isCNPJ(valor); 
+				if (!cnpjValido) {throw new Exception("CNPJ invalido: " + valor);}
+				ret = consultaService.infobuscaDetalhada(valor, uf, INFOBUSCA_DETALHADA_PJ, codigoUsuarioEmpresa);	
+			}
 			
-			if (!cpfValido) {throw new Exception("CPF invalido: " + cpf);}
-			
-			String ret = consultaService.consultarCPF(cpf, uf, codigoTipoConsulta, codigoUsuarioEmpresa);			
-		
-			 ObjectMapper mapper = new ObjectMapper(); 
-		     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		     mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-		     mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
-		     mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
-		     HashMap<String, Object> retorno = mapper.readValue(ret, HashMap.class);
-			if (ret != null) {					 
+			if (ret != null && ret.length() > 0) {	
+				ObjectMapper mapper = new ObjectMapper(); 
+			    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+			    mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+			    mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
+			    mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+			    HashMap<String, Object> retorno = mapper.readValue(ret, HashMap.class);
 				response.setData(Optional.ofNullable(retorno));
 				response.setStatus(true);			
 			} else {
@@ -71,8 +83,8 @@ public class consultaController {
 		return ResponseEntity.ok(response);		
 	}
 	
-	@GetMapping("/buscarPorPlaca/{placa}/{uf}/{codigoTipoConsulta}/{codigoUsuarioEmpresa}")
-	public ResponseEntity<GenericResponse<?>> buscarPorPlaca(@PathVariable("placa") String placa, 
+	@GetMapping("/veicularTOP/{placa}/{uf}/{codigoTipoConsulta}/{codigoUsuarioEmpresa}")
+	public ResponseEntity<GenericResponse<?>> veicularTOP(@PathVariable("placa") String placa, 
 			                                                 @PathVariable("uf") String uf, 
 															 @PathVariable("codigoTipoConsulta") Long codigoTipoConsulta,
 															 @PathVariable("codigoUsuarioEmpresa") Long codigoUsuarioEmpresa) {
@@ -83,7 +95,7 @@ public class consultaController {
 			if ((placa == null || placa.length() == 0) || (uf == null || uf.length() == 0) || (codigoTipoConsulta == null) || (codigoUsuarioEmpresa == null)) {
 				throw new Exception("Todos os parametros são origatórios!");
 			}
-			String ret = consultaService.consultarPLACA(placa, uf, codigoTipoConsulta, codigoUsuarioEmpresa);
+			String ret = consultaService.veicularTOP(placa, uf, codigoTipoConsulta, codigoUsuarioEmpresa);
 			
 			 ObjectMapper mapper = new ObjectMapper(); 
 		     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -105,11 +117,11 @@ public class consultaController {
 		return ResponseEntity.ok(response);		
 	}
 	
-	@GetMapping("/buscaPorNome/{nome}/{uf}/{codigoTipoConsulta}/{codigoUsuarioEmpresa}")
-	public ResponseEntity<GenericResponse<?>> buscaPorNome(@PathVariable("nome") String nome, 
-			                                                 @PathVariable("uf") String uf, 
-															 @PathVariable("codigoTipoConsulta") Long codigoTipoConsulta,
-															 @PathVariable("codigoUsuarioEmpresa") Long codigoUsuarioEmpresa) {
+	@GetMapping("/infobusca/{nome}/{uf}/{codigoTipoConsulta}/{codigoUsuarioEmpresa}")
+	public ResponseEntity<GenericResponse<?>> infobusca(@PathVariable("nome") String nome, 
+			                                            @PathVariable("uf") String uf, 
+														@PathVariable("codigoTipoConsulta") Long codigoTipoConsulta,
+														@PathVariable("codigoUsuarioEmpresa") Long codigoUsuarioEmpresa) {
 		GenericResponse<HashMap> response = new GenericResponse<HashMap>();
 		List<String> erros = new ArrayList<String>();
 		try {
@@ -117,7 +129,7 @@ public class consultaController {
 			if ((nome == null || nome.length() == 0) || (uf == null || uf.length() == 0) || (codigoTipoConsulta == null) || (codigoUsuarioEmpresa == null)) {
 				throw new Exception("Todos os parametros são origatórios!");
 			}
-			String ret = consultaService.consultarNome(nome, uf, codigoTipoConsulta, codigoUsuarioEmpresa);
+			String ret = consultaService.infobusca(nome, uf, codigoTipoConsulta, codigoUsuarioEmpresa);
 			
 			 ObjectMapper mapper = new ObjectMapper(); 
 		     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -126,6 +138,87 @@ public class consultaController {
 		     mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
 		     HashMap<String, Object> retorno = mapper.readValue(ret, HashMap.class);
 			if (ret != null) {					 
+				response.setData(Optional.ofNullable(retorno));
+				response.setStatus(true);			
+			} else {
+				response.setStatus(true);
+			}
+		} catch (Exception e) {
+			erros.add("Falha: " + e.getMessage());
+			response.setStatus(false);
+			response.setErrors(erros);
+		}
+		return ResponseEntity.ok(response);		
+	}
+	
+	@GetMapping("/leilaoCompletaMaisScore/{placa}/{uf}/{codigoTipoConsulta}/{codigoUsuarioEmpresa}")
+	public ResponseEntity<GenericResponse<?>> leilaoCompletaMaisScore(@PathVariable("placa") String placa, 
+					                                                  @PathVariable("uf") String uf, 
+																	  @PathVariable("codigoTipoConsulta") Long codigoTipoConsulta,
+																	  @PathVariable("codigoUsuarioEmpresa") Long codigoUsuarioEmpresa) {
+		GenericResponse<HashMap> response = new GenericResponse<HashMap>();
+		List<String> erros = new ArrayList<String>();
+		try {
+			
+			if ((placa == null || placa.length() == 0) || (uf == null || uf.length() == 0) || (codigoTipoConsulta == null) || (codigoUsuarioEmpresa == null)) {
+				throw new Exception("Todos os parametros são origatórios!");
+			}
+			String ret = consultaService.leilaoCompletaMaisScore(placa, uf, codigoTipoConsulta, codigoUsuarioEmpresa);
+			
+			 ObjectMapper mapper = new ObjectMapper(); 
+		     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		     mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+		     mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
+		     mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+		     HashMap<String, Object> retorno = mapper.readValue(ret, HashMap.class);
+			if (ret != null) {					 
+				response.setData(Optional.ofNullable(retorno));
+				response.setStatus(true);			
+			} else {
+				response.setStatus(true);
+			}
+		} catch (Exception e) {
+			erros.add("Falha: " + e.getMessage());
+			response.setStatus(false);
+			response.setErrors(erros);
+		}
+		return ResponseEntity.ok(response);		
+	}	
+	
+
+	@GetMapping("/acoesJudiciais/{valor}/{uf}/{codigoTipoConsulta}/{codigoUsuarioEmpresa}")
+	public ResponseEntity<GenericResponse<?>> acoesJudiciais(@PathVariable("valor") String valor, 
+														   	 @PathVariable("uf") String uf, 
+														   	 @PathVariable("codigoTipoConsulta") Long codigoTipoConsulta,
+														   	 @PathVariable("codigoUsuarioEmpresa") Long codigoUsuarioEmpresa) {		
+		
+		GenericResponse<HashMap> response = new GenericResponse<HashMap>();
+		List<String> erros = new ArrayList<String>();
+		try {
+			
+			if ((valor == null || valor.length() == 0) || (uf == null || uf.length() == 0) || (codigoTipoConsulta == null) || (codigoUsuarioEmpresa == null)) {
+				throw new Exception("Todos os parametros são origatórios!");
+			}
+			
+			String ret = "";
+			if (codigoTipoConsulta.equals(ACOES_JUDICIAIS_PF)) {
+				Boolean cpfValido = Util.isCPF(valor);				
+				if (!cpfValido) {throw new Exception("CPF invalido: " + valor);}				
+				ret = consultaService.acoesJudiciais(valor, uf, ACOES_JUDICIAIS_PF, codigoUsuarioEmpresa);				
+			}
+			if (codigoTipoConsulta.equals(ACOES_JUDICIAIS_PJ)) {
+				Boolean cnpjValido = Util.isCNPJ(valor);				
+				if (!cnpjValido) {throw new Exception("CNPJ invalido: " + valor);}				
+				ret = consultaService.acoesJudiciais(valor, uf, ACOES_JUDICIAIS_PJ, codigoUsuarioEmpresa);
+			}			
+		
+			if (ret != null && ret.length() > 0) {					 
+				ObjectMapper mapper = new ObjectMapper(); 
+			    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+			    mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+			    mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
+			    mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+			    HashMap<String, Object> retorno = mapper.readValue(ret, HashMap.class);
 				response.setData(Optional.ofNullable(retorno));
 				response.setStatus(true);			
 			} else {
@@ -198,118 +291,6 @@ public class consultaController {
 		return ResponseEntity.ok(response);		
 	}
 	
-	@GetMapping("/buscarLeilaoCompletaSCORE/{placa}/{uf}/{codigoTipoConsulta}/{codigoUsuarioEmpresa}")
-	public ResponseEntity<GenericResponse<?>> buscarLeilaoCompletaSCORE(@PathVariable("placa") String placa, 
-			                                                 @PathVariable("uf") String uf, 
-															 @PathVariable("codigoTipoConsulta") Long codigoTipoConsulta,
-															 @PathVariable("codigoUsuarioEmpresa") Long codigoUsuarioEmpresa) {
-		GenericResponse<HashMap> response = new GenericResponse<HashMap>();
-		List<String> erros = new ArrayList<String>();
-		try {
-			
-			if ((placa == null || placa.length() == 0) || (uf == null || uf.length() == 0) || (codigoTipoConsulta == null) || (codigoUsuarioEmpresa == null)) {
-				throw new Exception("Todos os parametros são origatórios!");
-			}
-			String ret = consultaService.buscarLeilaoCompletaSCORE(placa, uf, codigoTipoConsulta, codigoUsuarioEmpresa);
-			
-			 ObjectMapper mapper = new ObjectMapper(); 
-		     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		     mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-		     mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
-		     mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
-		     HashMap<String, Object> retorno = mapper.readValue(ret, HashMap.class);
-			if (ret != null) {					 
-				response.setData(Optional.ofNullable(retorno));
-				response.setStatus(true);			
-			} else {
-				response.setStatus(true);
-			}
-		} catch (Exception e) {
-			erros.add("Falha: " + e.getMessage());
-			response.setStatus(false);
-			response.setErrors(erros);
-		}
-		return ResponseEntity.ok(response);		
-	}
 	
-	@GetMapping("/consultarACoesJudiciaisCPF/{cpf}/{uf}/{codigoTipoConsulta}/{codigoUsuarioEmpresa}")
-	public ResponseEntity<GenericResponse<?>> consultarACoesJudiciaisCPF(@PathVariable("cpf") String cpf, 
-														   @PathVariable("uf") String uf, 
-														   @PathVariable("codigoTipoConsulta") Long codigoTipoConsulta,
-														   @PathVariable("codigoUsuarioEmpresa") Long codigoUsuarioEmpresa) {		
-		
-		GenericResponse<HashMap> response = new GenericResponse<HashMap>();
-		List<String> erros = new ArrayList<String>();
-		try {
-			
-			if ((cpf == null || cpf.length() == 0) || (uf == null || uf.length() == 0) || (codigoTipoConsulta == null) || (codigoUsuarioEmpresa == null)) {
-				throw new Exception("Todos os parametros são origatórios!");
-			}
-			
-			Boolean cpfValido = Util.isCPF(cpf);
-			
-			if (!cpfValido) {throw new Exception("CPF invalido: " + cpf);}
-			
-			String ret = consultaService.consultarACoesJudiciaisCPF(cpf, uf, codigoTipoConsulta, codigoUsuarioEmpresa);			
-		
-			 ObjectMapper mapper = new ObjectMapper(); 
-		     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		     mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-		     mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
-		     mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
-		     HashMap<String, Object> retorno = mapper.readValue(ret, HashMap.class);
-			if (ret != null) {					 
-				response.setData(Optional.ofNullable(retorno));
-				response.setStatus(true);			
-			} else {
-				response.setStatus(true);
-			}
-		} catch (Exception e) {
-			erros.add("Falha: " + e.getMessage());
-			response.setStatus(false);
-			response.setErrors(erros);
-		}
-		return ResponseEntity.ok(response);		
-	}
-	
-	@GetMapping("/consultarACoesJudiciaisCNPJ/{cnpj}/{uf}/{codigoTipoConsulta}/{codigoUsuarioEmpresa}")
-	public ResponseEntity<GenericResponse<?>> consultarACoesJudiciaisCNPJ(@PathVariable("cnpj") String cnpj, 
-														   @PathVariable("uf") String uf, 
-														   @PathVariable("codigoTipoConsulta") Long codigoTipoConsulta,
-														   @PathVariable("codigoUsuarioEmpresa") Long codigoUsuarioEmpresa) {		
-		
-		GenericResponse<HashMap> response = new GenericResponse<HashMap>();
-		List<String> erros = new ArrayList<String>();
-		try {
-			
-			if ((cnpj == null || cnpj.length() == 0) || (uf == null || uf.length() == 0) || (codigoTipoConsulta == null) || (codigoUsuarioEmpresa == null)) {
-				throw new Exception("Todos os parametros são origatórios!");
-			}
-			
-			//Boolean cpfValido = Util.isCPF(cpf);
-			
-			//if (!cpfValido) {throw new Exception("CPF invalido: " + cpf);}
-			
-			String ret = consultaService.consultarACoesJudiciaisCNPJ(cnpj, uf, codigoTipoConsulta, codigoUsuarioEmpresa);			
-		
-			 ObjectMapper mapper = new ObjectMapper(); 
-		     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		     mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-		     mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
-		     mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
-		     HashMap<String, Object> retorno = mapper.readValue(ret, HashMap.class);
-			if (ret != null) {					 
-				response.setData(Optional.ofNullable(retorno));
-				response.setStatus(true);			
-			} else {
-				response.setStatus(true);
-			}
-		} catch (Exception e) {
-			erros.add("Falha: " + e.getMessage());
-			response.setStatus(false);
-			response.setErrors(erros);
-		}
-		return ResponseEntity.ok(response);		
-	}
 	
 }
