@@ -75,11 +75,18 @@ public class ConsultaServiceImpl implements ConsultaService{
 			//String json = response.getBody().toString();
 			
 			String json = "";
-			if (codigoTipoConsulta.equals(INFOBUSCA_DETALHADA_PF)) {
-				 json =  buscaJson("INFOBUSCA_DETALHADA_PF");								
-			}
-			if (codigoTipoConsulta.equals(INFOBUSCA_DETALHADA_PJ)) {
-				json =  buscaJson("INFOBUSCA_DETALHADA_PJ");
+			String jsonSalvo = this.buscarConsultaSalvaPorData(valor, uf, codigoTipoConsulta, codigoUsuarioEmpresa);
+			
+			// Se ja existir uma consulta do mesmo dia, pega ela e nao vai na sefaz novamente
+			if (jsonSalvo != null) {
+				json = jsonSalvo;
+			} else {
+				if (codigoTipoConsulta.equals(INFOBUSCA_DETALHADA_PF)) {
+					json =  buscaJson("INFOBUSCA_DETALHADA_PF");								
+				}
+				if (codigoTipoConsulta.equals(INFOBUSCA_DETALHADA_PJ)) {
+					json =  buscaJson("INFOBUSCA_DETALHADA_PJ");
+				}				
 			}			
 
 			// Salva o retorno
@@ -116,7 +123,14 @@ public class ConsultaServiceImpl implements ConsultaService{
 	        //ResponseEntity<?> response = new RestTemplate().postForEntity(url, request, String.class);			             
 		     //String json = response.getBody().toString();
 	        
-			String json  = buscaJson("VEICULAR_TOP");
+	        String json = "";
+			String jsonSalvo = this.buscarConsultaSalvaPorData(placa, uf, codigoTipoConsulta, codigoUsuarioEmpresa);
+	        // Se ja existir uma consulta do mesmo dia, pega ela e nao vai na sefaz novamente
+ 			if (jsonSalvo != null) {
+ 				json = jsonSalvo;
+ 			} else {
+ 				json  = buscaJson("VEICULAR_TOP");	     							
+ 			}        
 			
 			 // Salva o retorno
 			 RetornoConsulta retornoSalvo = this.salvarRetorno(codigoTipoConsulta, codigoUsuarioEmpresa, json, placa, uf);	
@@ -153,7 +167,14 @@ public class ConsultaServiceImpl implements ConsultaService{
 	        //ResponseEntity<?> response = new RestTemplate().postForEntity(url, request, String.class);			             
 		    //String json = response.getBody().toString();
 	        
-			String json  = buscaJson("INFOBUSCA");
+	        String json = "";
+ 			String jsonSalvo = this.buscarConsultaSalvaPorData(nome, uf, codigoTipoConsulta, codigoUsuarioEmpresa);
+ 	        // Se ja existir uma consulta do mesmo dia, pega ela e nao vai na sefaz novamente
+  			if (jsonSalvo != null) {
+  				json = jsonSalvo;
+  			} else {
+  				json  = buscaJson("INFOBUSCA");  					     							
+  			}         
 			
 			 // Salva o retorno
 			RetornoConsulta retornoSalvo = this.salvarRetorno(codigoTipoConsulta, codigoUsuarioEmpresa, json, nome, uf);
@@ -190,7 +211,14 @@ public class ConsultaServiceImpl implements ConsultaService{
 	        //ResponseEntity<?> response = new RestTemplate().postForEntity(url, request, String.class);			             
 		    //String json = response.getBody().toString();
 	        
-			String json  = buscaJson("LEILAO_COMPLETA_SCORE");
+	        String json = "";
+ 			String jsonSalvo = this.buscarConsultaSalvaPorData(placa, uf, codigoTipoConsulta, codigoUsuarioEmpresa);
+ 	        // Se ja existir uma consulta do mesmo dia, pega ela e nao vai na sefaz novamente
+  			if (jsonSalvo != null) {
+  				json = jsonSalvo;
+  			} else {
+  				json  = buscaJson("LEILAO_COMPLETA_SCORE");  								     							
+  			}  	        
 			
 			 // Salva o retorno
 			 RetornoConsulta retornoSalvo = this.salvarRetorno(codigoTipoConsulta, codigoUsuarioEmpresa, json, placa, uf);	
@@ -223,8 +251,7 @@ public class ConsultaServiceImpl implements ConsultaService{
 			}
 			if (codigoTipoConsulta.equals(ACOES_JUDICIAIS_PJ)) {
 				req_payload.put("param", "cnpj");
-			}
-			
+			}			
 			req_payload.put("value", valor);
 			req_payload.put("uf", uf);
 
@@ -235,12 +262,19 @@ public class ConsultaServiceImpl implements ConsultaService{
 			//String json = response.getBody().toString();
 			
 			String json = "";
-			if (codigoTipoConsulta.equals(ACOES_JUDICIAIS_PF)) {
-				json =  buscaJson("ACOES_JUDICIAIS_PF");				
-			}
-			if (codigoTipoConsulta.equals(ACOES_JUDICIAIS_PJ)) {
-				json =  buscaJson("ACOES_JUDICIAIS_PJ");
-			}
+			String jsonSalvo = this.buscarConsultaSalvaPorData(valor, uf, codigoTipoConsulta, codigoUsuarioEmpresa);
+			
+			// Se ja existir uma consulta do mesmo dia, pega ela e nao vai na sefaz novamente
+			if (jsonSalvo != null) {
+				json = jsonSalvo;
+			} else {
+				if (codigoTipoConsulta.equals(ACOES_JUDICIAIS_PF)) {
+					json =  buscaJson("ACOES_JUDICIAIS_PF");				
+				}
+				if (codigoTipoConsulta.equals(ACOES_JUDICIAIS_PJ)) {
+					json =  buscaJson("ACOES_JUDICIAIS_PJ");
+				}				
+			}			
 
 			// Salva o retorno
 			if (json != null && json.length() > 0) {
@@ -302,4 +336,16 @@ public class ConsultaServiceImpl implements ConsultaService{
 		}		
 	}
 	
+	// Busca o Json de uma consulta salva
+	public String buscarConsultaSalvaPorData(String valor, String uf, Long codigoTipoConsulta, Long codigoUsuarioEmpresa) throws Exception {
+		try {
+			RetornoConsulta retornoConsulta = retornoConsultaRepository.buscarConsultaSalvaPorData(valor, uf, codigoTipoConsulta, codigoUsuarioEmpresa);
+			if (retornoConsulta != null) {
+				return retornoConsulta.getJson();
+			}
+			return null;
+		} catch (Exception e) {
+			throw new Exception("Falha ao bucar retorno salvo: " + e.getMessage());
+		}
+	}
 }
